@@ -1,0 +1,18 @@
+services:
+  superset:
+    image: "<%= @utils['images']['superset'] %>"
+    restart: always
+    volumes:
+      - superset_db:/var/lib/superset
+    expose:
+      - "8088"   # internal Superset port
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.superset.rule=Host(`superset.<%= @config['app']['domain'] %>`)"
+      - "traefik.http.routers.superset.entrypoints=websecure"
+      - "traefik.http.routers.superset.tls=true"
+      - "traefik.http.routers.superset.tls.certresolver=letsencrypt"
+      - "traefik.http.services.superset.loadbalancer.server.port=8088"
+
+volumes:
+  superset_db:

@@ -1,0 +1,20 @@
+services:
+  gateway:
+    image: envoyproxy/envoy:v1.10.0
+    volumes:
+      - ../config/gateway:/etc/envoy/
+    ports:  # ADD THIS
+      - "8099:8099"   # Gateway port
+      - "9099:9099"   # Admin port
+    expose:
+      - "8099"
+    networks:
+      - opendax_default
+    command: /usr/local/bin/envoy -l info -c /etc/envoy/envoy.yaml
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gateway.rule=Host(`app.temx.org`) && (PathPrefix(`/api`) || PathPrefix(`/admin`) || PathPrefix(`/assets`))"
+      - "traefik.http.routers.gateway.entrypoints=websecure"
+      - "traefik.http.routers.gateway.tls=true"
+      - "traefik.http.routers.gateway.tls.certresolver=myresolver"
+      - "traefik.http.services.gateway.loadbalancer.server.port=8099"

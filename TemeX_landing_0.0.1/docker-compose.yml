@@ -1,0 +1,20 @@
+version: '3.8'
+services:
+  temex-landing:
+    build: .
+    ports:
+      - "1000:1000"
+    container_name: temex-app
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.temex-landing.rule=Host(`temx.org`) || Host(`www.temx.org`)"
+      - "traefik.http.routers.temex-landing.entrypoints=web"
+      - "traefik.http.routers.temex-landing.priority=1000"  # Higher priority
+      - "traefik.http.services.temex-landing.loadbalancer.server.port=1000"
+    networks:
+      - microkube_default
+
+networks:
+  opendax_default:
+    external: true

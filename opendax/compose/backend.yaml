@@ -1,0 +1,69 @@
+services:
+  db:
+    image: mysql:5.7
+    volumes:
+      - db_data:/var/lib/mysql
+      - ../config/mysql:/etc/mysql/conf.d
+    environment:
+      MYSQL_ROOT_PASSWORD: changeme
+    networks:
+      - opendax_default
+    labels:
+      - "traefik.enable=false"
+
+  redis:
+    image: redis:4.0.10
+    restart: always
+    volumes:
+      - redis_data:/data
+    networks:
+      - opendax_default
+    labels:
+      - "traefik.enable=false"
+
+  rabbitmq:
+    image: rabbitmq:3.7.6-management
+    restart: always
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: changeme
+    expose:
+      - "15672"
+    networks:
+      - opendax_default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rabbitmq.rule=Host(`rabbitmq.temx.org`)"
+      - "traefik.http.routers.rabbitmq.entrypoints=websecure"
+      - "traefik.http.routers.rabbitmq.tls.certresolver=myresolver"
+      - "traefik.http.services.rabbitmq.loadbalancer.server.port=15672"
+
+  vault:
+    image: vault:0.10.2
+    restart: always
+    volumes:
+      - vault_data:/vault
+    environment:
+      SKIP_SETCAP: 1
+      VAULT_TOKEN: changeme
+      VAULT_DEV_ROOT_TOKEN_ID: changeme
+      VAULT_ADDR: http://vault:8200
+    expose:
+      - "8200"
+    networks:
+      - opendax_default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.vault.rule=Host(`vault.temx.org`)"
+      - "traefik.http.routers.vault.entrypoints=websecure"
+      - "traefik.http.routers.vault.tls.certresolver=myresolver"
+      - "traefik.http.services.vault.loadbalancer.server.port=8200"
+
+volumes:
+  db_data:
+  rabbitmq_data:
+  redis_data:
+  vault_data:
+

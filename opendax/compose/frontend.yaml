@@ -1,0 +1,33 @@
+services:
+  frontend:
+    image: "docker.pkg.github.com/mobidax/opendax/baseapp:2.3.27"
+    volumes:
+      - ../config/frontend/env.js:/usr/share/nginx/html/config/env.js
+    expose:
+      - "80"
+    networks:
+      - opendax_default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`app.temx.org`)"
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.tls=true"
+      - "traefik.http.routers.frontend.tls.certresolver=myresolver"
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+
+  tower:
+    image: "quay.io/openware/tower:2.4.11"
+    volumes:
+      - ../config/frontend/tower.js:/home/app/env.js
+    expose:
+      - "80"
+    networks:
+      - opendax_default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tower.rule=Host(`app.temx.org`) && PathPrefix(`/tower`)"
+      - "traefik.http.routers.tower.entrypoints=websecure"
+      - "traefik.http.routers.tower.tls=true"
+      - "traefik.http.routers.tower.tls.certresolver=myresolver"
+      - "traefik.http.services.tower.loadbalancer.server.port=3000"
+
