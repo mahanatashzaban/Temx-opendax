@@ -1,0 +1,4 @@
+services:
+  components-docs:
+    image: alpine:3.18
+    command: ["echo", "components-docs disabled"]

@@ -1,0 +1,202 @@
+x-daemon: &peatio-daemon
+  image: "rubykube/peatio:2.3.43"
+  restart: always
+  env_file:
+    - ../config/peatio.env
+  volumes:
+    - ../config/peatio:/opt/peatio/config:ro
+  expose:
+    - "3000"
+  networks:
+    - opendax_default
+  labels:
+    - "traefik.enable=true"
+    - "traefik.http.routers.<SERVICE_NAME>.entrypoints=websecure"
+    - "traefik.http.routers.<SERVICE_NAME>.tls=true"
+    - "traefik.http.routers.<SERVICE_NAME>.tls.certresolver=myresolver"
+    - "traefik.http.services.<SERVICE_NAME>.loadbalancer.server.port=3000"
+
+services:
+  withdraw_audit:
+    <<: *peatio-daemon
+    command: bash -c "bin/link_config && bundle exec ruby lib/daemons/daemons.rb withdraw_audit"
+    labels:
+      - "traefik.http.routers.withdraw_audit.rule=Host(`daemon.temx.org`) && PathPrefix(`/withdraw_audit`)"
+      - "traefik.http.services.withdraw_audit.loadbalancer.server.port=3000"
+
+  blockchain:
+    <<: *peatio-daemon
+    command: bash -c "bin/link_config && bundle exec ruby lib/daemons/daemons.rb blockchain"
+    labels:
+      - "traefik.http.routers.blockchain.rule=Host(`daemon.temx.org`) && PathPrefix(`/blockchain`)"
+      - "traefik.http.services.blockchain.loadbalancer.server.port=3000"
+
+  global_state:
+    <<: *peatio-daemon
+    command: bash -c "bin/link_config && bundle exec ruby lib/daemons/daemons.rb global_state"
+    labels:
+      - "traefik.http.routers.global_state.rule=Host(`daemon.temx.org`) && PathPrefix(`/global_state`)"
+      - "traefik.http.services.global_state.loadbalancer.server.port=3000"
+
+  k:
+    <<: *peatio-daemon
+    command: bash -c "bin/link_config && bundle exec ruby lib/daemons/daemons.rb k"
+    labels:
+      - "traefik.http.routers.k.rule=Host(`daemon.temx.org`) && PathPrefix(`/k`)"
+      - "traefik.http.services.k.loadbalancer.server.port=3000"
+
+  slave_book:
+    <<: *peatio-daemon
+    command: bash -c "bin/link_config && bundle exec ruby lib/daemons/daemons.rb slave_book"
+    labels:
+      - "traefik.http.routers.slave_book.rule=Host(`daemon.temx.org`) && PathPrefix(`/slave_book`)"
+      - "traefik.http.services.slave_book.loadbalancer.server.port=3000"
+
+  deposit_collection:
+    <<: *peatio-daemon
+    command: bash -c "bin/link_config && bundle exec ruby lib/daemons/amqp_daemon.rb deposit_collection"
+    labels:
+      - "traefik.http.routers.deposit_collection.rule=Host(`daemon.temx.org`) && PathPrefix(`/deposit_collection`)"
+      - "traefik.http.services.deposit_collection.loadbalancer.server.port=3000"
+
+  deposit_collection_fees:
+    <<: *peatio-daemon
+    command: bash -c "bin/link_config && bundle exec ruby lib/daemons/amqp_daemon.rb deposit_collection_fees"
+    labels:
+      - "traefik.http.routers.deposit_collection_fees.rule=Host(`daemon.temx.org`) && PathPrefix(`/deposit_collection_fees`)"
+      - "traefik.http.services.deposit_collection_fees.loadbalancer.server.port=3000"
+
+  deposit_coin_address:
+    <<: *peatio-daemon
+    command: bash -c "bin/link_config && bundle exec ruby lib/daemons/amqp_daemon.rb deposit_coin_address"
+    labels:
+      - "traefik.http.routers.deposit_coin_address.rule=Host(`daemon.temx.org`) && PathPrefix(`/deposit_coin_address`)"
+      - "traefik.http.services.deposit_coin_address.loadbalancer.server.port=3000"
+
+  market_ticker:
+    <<: *peatio-daemon
+    command: bash -c "bin/link_config && bundle exec ruby lib/daemons/amqp_daemon.rb market_ticker"
+    labels:
+      - "traefik.http.routers.market_ticker.rule=Host(`daemon.temx.org`) && PathPrefix(`/market_ticker`)"
+      - "traefik.http.services.market_ticker.loadbalancer.server.port=3000"
+
+  matching:
+    <<: *peatio-daemon
+    command: bash -c "bin/link_config && bundle exec ruby lib/daemons/amqp_daemon.rb matching"
+    labels:
+      - "traefik.http.routers.matching.rule=Host(`daemon.temx.org`) && PathPrefix(`/matching`)"
+      - "traefik.http.services.matching.loadbalancer.server.port=3000"
+
+  order_processor:
+    <<: *peatio-daemon
+    command: bash -c "bin/link_config && bundle exec ruby lib/daemons/amqp_daemon.rb order_processor"
+    labels:
+      - "traefik.http.routers.order_processor.rule=Host(`daemon.temx.org`) && PathPrefix(`/order_processor`)"
+      - "traefik.http.services.order_processor.loadbalancer.server.port=3000"
+
+  trade_executor:
+    <<: *peatio-daemon
+    command: bash -c "bin/link_config && bundle exec ruby lib/daemons/amqp_daemon.rb trade_executor"
+    labels:
+      - "traefik.http.routers.trade_executor.rule=Host(`daemon.temx.org`) && PathPrefix(`/trade_executor`)"
+      - "traefik.http.services.trade_executor.loadbalancer.server.port=3000"
+
+  withdraw_coin:
+    <<: *peatio-daemon
+    command: bash -c "bin/link_config && bundle exec ruby lib/daemons/amqp_daemon.rb withdraw_coin"
+    labels:
+      - "traefik.http.routers.withdraw_coin.rule=Host(`daemon.temx.org`) && PathPrefix(`/withdraw_coin`)"
+      - "traefik.http.services.withdraw_coin.loadbalancer.server.port=3000"
+
+  pusher_market:
+    <<: *peatio-daemon
+    command: bash -c "bin/link_config && bundle exec ruby lib/daemons/amqp_daemon.rb pusher_market"
+    labels:
+      - "traefik.http.routers.pusher_market.rule=Host(`daemon.temx.org`) && PathPrefix(`/pusher_market`)"
+      - "traefik.http.services.pusher_market.loadbalancer.server.port=3000"
+
+  pusher_member:
+    <<: *peatio-daemon
+    command: bash -c "bin/link_config && bundle exec ruby lib/daemons/amqp_daemon.rb pusher_member"
+    labels:
+      - "traefik.http.routers.pusher_member.rule=Host(`daemon.temx.org`) && PathPrefix(`/pusher_member`)"
+      - "traefik.http.services.pusher_member.loadbalancer.server.port=3000"
+
+  ranger:
+    image: "rubykube/peatio:2.3.43"
+    env_file:
+      - ../config/ranger.env
+    expose:
+      - "8080"
+    networks:
+      - opendax_default
+    command: bash -c "bin/link_config && bundle exec peatio service start ranger"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ranger.rule=Host(`daemon.temx.org`) && PathPrefix(`/ranger`)"
+      - "traefik.http.routers.ranger.entrypoints=websecure"
+      - "traefik.http.routers.ranger.tls=true"
+      - "traefik.http.routers.ranger.tls.certresolver=myresolver"
+      - "traefik.http.services.ranger.loadbalancer.server.port=8080"
+
+  postmaster:
+    image: "quay.io/openware/postmaster:2.3.5"
+    env_file:
+      - ../config/postmaster.env
+    volumes:
+      - ../config/postmaster.yml:/app/config/postmaster.yml
+      - ../config/postmaster/templates:/app/templates
+    expose:
+      - "3000"
+    networks:
+      - opendax_default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.postmaster.rule=Host(`daemon.temx.org`) && PathPrefix(`/postmaster`)"
+      - "traefik.http.routers.postmaster.entrypoints=websecure"
+      - "traefik.http.routers.postmaster.tls=true"
+      - "traefik.http.routers.postmaster.tls.certresolver=myresolver"
+      - "traefik.http.services.postmaster.loadbalancer.server.port=3000"
+
+  sidekiq:
+    image: "quay.io/openware/applogic:2.3.43"
+    env_file:
+      - ../config/applogic.env
+    volumes:
+      - ../config/applogic/management_api_v2.yml:/home/app/config/management_api_v2.yml
+      - ../config/applogic/schedule.yml:/home/app/config/schedule.yml
+    command: bash -c "sidekiq"
+    expose:
+      - "3000"
+    networks:
+      - opendax_default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.sidekiq.rule=Host(`daemon.temx.org`) && PathPrefix(`/sidekiq`)"
+      - "traefik.http.routers.sidekiq.entrypoints=websecure"
+      - "traefik.http.routers.sidekiq.tls=true"
+      - "traefik.http.routers.sidekiq.tls.certresolver=myresolver"
+      - "traefik.http.services.sidekiq.loadbalancer.server.port=3000"
+
+  listener:
+    image: "quay.io/openware/applogic:2.3.43"
+    env_file:
+      - ../config/applogic.env
+    volumes:
+      - ../config/applogic/management_api_v2.yml:/home/app/config/management_api_v2.yml
+    command: bash -c "bundle exec rake event_api_listener"
+    expose:
+      - "3000"
+    networks:
+      - opendax_default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.listener.rule=Host(`daemon.temx.org`) && PathPrefix(`/listener`)"
+      - "traefik.http.routers.listener.entrypoints=websecure"
+      - "traefik.http.routers.listener.tls=true"
+      - "traefik.http.routers.listener.tls.certresolver=myresolver"
+      - "traefik.http.services.listener.loadbalancer.server.port=3000"
+
+networks:
+  opendax_default:
+    external: true
